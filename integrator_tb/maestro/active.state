@@ -2,9 +2,9 @@
 <statedb ICVersion="IC23.1-64b.ISR7.27" modifiedTime="11/21/2026 21:53:50" version="5">active
 	<Test Name="ECE4530_2026_MP2_test_bench_1">
 		<component Name="adeInfo" Type="skillTable">adeinfo
-			<field Name="projectDir" Type="string">"/home/zc499/simulation/adc/modulator_testbench/maestro/results/maestro/.tmpADEDir_zc499/ECE4530_2026_MP2_test_bench_1/simulation"</field>
+			<field Name="projectDir" Type="string">"/home/zc499/simulation/adc/modulator_tb/maestro/results/maestro/.tmpADEDir_zc499/ECE4530_2026_MP2_test_bench_1/simulation"</field>
 			<field Name="descriptiontext" Type="string">"None"</field>
-			<field Name="designInfo" Type="list">("adc" "modulator_testbench" "schematic" "spectre")</field>
+			<field Name="designInfo" Type="list">("adc" "modulator_tb" "schematic" "spectre")</field>
 		</component>
 		<component Name="rfstim" Type="skillTable">rfstim</component>
 		<component Name="analyses" Type="skillTable">asiEnvSaveTable

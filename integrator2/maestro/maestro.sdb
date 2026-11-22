@@ -12,7 +12,7 @@
 				<tool>ADE</tool>
 				<tooloptions>
 					<option>cell
-						<value>modulator_testbench</value>
+						<value>modulator_tb</value>
 					</option>
 					<option>lib
 						<value>adc</value>
@@ -133,6 +133,5 @@
 		<overwritehistoryname>ExplorerRun.0</overwritehistoryname>
 		<defaultreliabilitymode>Reliability</defaultreliabilitymode>
 	</active>
-	<history>History
-	</history>
+	<history>History</history>
 </setupdb>

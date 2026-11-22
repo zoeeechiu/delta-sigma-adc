@@ -1,0 +1,39 @@
+// VerilogA for adc, comparator_ideal, veriloga
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+module comparator_ideal(vinp, vinn, clk, out, vss);
+
+    input vinp, vinn, clk;
+    output out;
+    inout vss;
+
+    electrical vinp, vinn, clk, out, vss;
+
+    parameter real vclk_th = 1.2;
+    parameter real vhigh = 1.0;
+    parameter real vlow = -1.0;
+    parameter real trise = 1n;
+    parameter real tfall = 1n;
+
+    real result;
+
+    analog begin
+        // Initial output before the first clock edge
+        @(initial_step)
+            result = vlow;
+
+        // Compare on the rising edge of the clock
+        @(cross(V(clk, vss) - vclk_th, +1)) begin
+            if (V(vinp, vinn) >= 0)
+                result = vhigh;
+            else
+                result = vlow;
+        end
+
+        // Hold the decision between clock edges
+        V(out, vss) <+ transition(result, 0, trise, tfall);
+    end
+
+endmodule

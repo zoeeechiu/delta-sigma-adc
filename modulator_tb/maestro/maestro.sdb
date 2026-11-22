@@ -12,7 +12,7 @@
 				<tool>ADE</tool>
 				<tooloptions>
 					<option>cell
-						<value>modulator_testbench</value>
+						<value>modulator_tb</value>
 					</option>
 					<option>lib
 						<value>adc</value>
@@ -58,7 +58,7 @@
 					<output>(db(((OutP + OutN) / 2)))
 						<evalType>point</evalType>
 					</output>
-					<output>diff output
+					<output>int1 output
 						<evalType>point</evalType>
 					</output>
 					<output>phi1
@@ -71,6 +71,15 @@
 						<evalType>point</evalType>
 					</output>
 					<output>rst
+						<evalType>point</evalType>
+					</output>
+					<output>bitstream
+						<evalType>point</evalType>
+					</output>
+					<output>dac
+						<evalType>point</evalType>
+					</output>
+					<output>int2 output
 						<evalType>point</evalType>
 					</output>
 				</outputs>
@@ -133,5 +142,6 @@
 		<overwritehistoryname>ExplorerRun.0</overwritehistoryname>
 		<defaultreliabilitymode>Reliability</defaultreliabilitymode>
 	</active>
-	<history>History</history>
+	<history>History
+	</history>
 </setupdb>
