@@ -1,0 +1,23 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module dac1bit(din, vcmi, vdacp, vdacn, vdd, gnd);
+  inout vdd, gnd;
+  input din, vcmi;
+  output vdacp, vdacn;
+  electrical din, vcmi, vdacp, vdacn, vdd, gnd;
+
+  parameter real vref   = 0.32;   // differential feedback = +-vref
+  parameter real tdelay = 1n;
+  parameter real trise  = 0.1n;
+  parameter real tfall  = 0.1n;
+
+  real sgn;
+
+  analog begin
+    sgn = (V(din, gnd) > 0.5 * V(vdd, gnd)) ? 1.0 : -1.0;
+
+    V(vdacp, gnd) <+ transition(V(vcmi, gnd) + 0.5 * vref * sgn, tdelay, trise, tfall);
+    V(vdacn, gnd) <+ transition(V(vcmi, gnd) - 0.5 * vref * sgn, tdelay, trise, tfall);
+  end
+endmodule

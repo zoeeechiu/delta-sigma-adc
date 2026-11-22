@@ -1,0 +1,28 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module comparator(inp, inn, clk, out, outb, vdd, gnd);
+  inout vdd, gnd;
+  input inp, inn, clk;
+  output out, outb;
+  electrical inp, inn, clk, out, outb, vdd, gnd;
+
+  parameter real vth     = 1.2;     // clock threshold (half of a 2.4 V clock)
+  parameter real voffset = 0.0;     // input-referred offset, volts
+  parameter real tdelay  = 1n;      // decision delay
+  parameter real trise   = 0.1n;
+  parameter real tfall   = 0.1n;
+
+  integer state;
+
+  analog begin
+    @(initial_step) state = 1;
+
+    // decide on the FALLING edge of clk (connect clk to phi2: integrator output is valid then)
+    @(cross(V(clk, gnd) - vth, -1))
+      state = ((V(inp, inn) - voffset) >= 0) ? 1 : 0;
+
+    V(out,  gnd) <+ transition(state       * V(vdd, gnd), tdelay, trise, tfall);
+    V(outb, gnd) <+ transition((1 - state) * V(vdd, gnd), tdelay, trise, tfall);
+  end
+endmodule
