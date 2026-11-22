@@ -1,0 +1,128 @@
+======================================================================
+1. PROJECT TARGET (from Design_Requirements)
+======================================================================
+- 2nd-order, single-bit, discrete-time delta-sigma modulator, fully differential
+  switched-capacitor integrators (Boser-Wooley style).
+- fB = 20 kHz, OSR = 128, fS = 5.12 MHz (period 195.3125 ns), decimated rate fD = fS/64 = 80 kHz
+- Input: +-250 mV differential. Full scale = +-Vref = +-320 mV.
+- SNDR >= 60 dB. Supply: 1.8 V / <= 10 mW (provisional; the lab amp actually runs on 2.4 V).
+- Only the analog modulator is built at transistor level. The digital filter (sinc^3, decimate
+  by 64) is done in Python (professor's suggestion).
+
+======================================================================
+2. WHAT EXISTS IN THE LIBRARY (adc)
+======================================================================
+- opamp_v1        : op-amp (derived from lab differential amp Lab3_dummy, compensated, see 3)
+- opamp_dummy     : Verilog-A behavioral op-amp (renamed from adc_dummy)
+- switch          : Verilog-A clocked switch (renamed from vsw); no longer used in the
+                    integrator now that MOSFET switches are in
+- integrator1     : SC integrator, Cs = 250 fF, Cf = 500 fF  (schematic + symbol)
+- integrator2     : copy of integrator1 with Cs = 125 fF, Cf = 250 fF  (schematic + symbol)
+- modulator_testbench : testbench (sources, clocks, integrator instance)
+
+======================================================================
+3. OP-AMP (inside integrator)
+======================================================================
+Starting point: the differential amp from Lab 3 (two-stage telescopic cascode, fully differential,
+CMFB by R4/R5 averaging).
+  - Av 115.7 (41 dB), BW 3.04 MHz, GBW ~ 350 MHz, CM gain 0.037, ICMR 1.09 V (Vbias 1.4 V +-0.33)
+  - IDD 179.7 uA, vdd 2.4 V
+Problem found in the integrator: loop instability in the common-mode loop and the differential
+loop. Fixes that worked:
+  - CM loop: 20 pF cap on net2.
+  - Differential loop: R-C (pole-zero) / dominant-pole compensation so the loop crosses 0 dB with
+    adequate phase margin.
+
+======================================================================
+4. HOW THE INTEGRATOR WORKS
+======================================================================
+Phase phi1 (sample): sampling cap Cs connects between vin and vcmi (charges to vin - vcm).
+Phase phi2 (transfer): left plate goes to vdac, right plate to the op-amp virtual-ground node;
+the op-amp forces the charge into Cf.
+Result (non-inverting):  delta Vod = +(Cs/Cf) * (Vin_d - Vdac_d), differential quantities,
+i.e. each cycle the integrator output moves by 0.5 * (input - DAC feedback).
+The input and the DAC feedback share the same Cs, so the feedback coefficient equals the input
+coefficient. Reset switches (RST+/-) short Cf at start-up (used with rstb / PMOS).
+The op-amp is needed so the right plate sits at a virtual ground and all the charge transfers to
+Cf; passive charge sharing would give a leaky, saturating response.
+
+======================================================================
+5. HOW THE CAPACITOR VALUES WERE CHOSEN
+======================================================================
+RATIO (Cs/Cf = 0.5 for both integrators):
+  - Taken from the standard Boser-Wooley 2nd-order modulator (the design in the proposal), not
+    derived from scratch. Checked afterwards:
+      NTF = (1 - z^-1)^2 / [ (1 - z^-1)^2 + a2 z^-1 (1 - z^-1) + a1 a2 z^-2 ]
+    With a1 = a2 = 0.5 the denominator is 1 - 1.5 z^-1 + 0.75 z^-2, poles at radius sqrt(0.75) =
+    0.87 (inside the unit circle, stable). Second-order noise shaping is kept.
+
+ABSOLUTE SIZE:
+  - kT/C noise: input-referred thermal noise power ~ 4kT / (Cs * OSR), with 4kT = 1.66e-20 J.
+    For a 250 mV peak input (signal power 31 mW):
+        Cs = 250 fF -> Pn = 5.2e-10 V^2 -> thermal-limited SNR ~ 78 dB
+        Cs =  42 fF -> Pn = 3.1e-9  V^2 -> ~ 70 dB   
+  - Integrator 2 is half the size (125 fF / 250 fF) because its noise is divided by the in-band
+    gain of integrator 1.
+  - Cs1 = 250 fF, Cf1 = 500 fF;  Cs2 = 125 fF, Cf2 = 250 fF.
+
+======================================================================
+6. SWITCHES
+======================================================================
+Started with Verilog-A switches (ron/roff/vth), replaced with MOSFETs once the step response
+was verified.
+  - Devices: gpdk045 nmos2v (2.5 V thick-oxide) because the circuit runs on 2.4 V; the 1 V
+    devices (nmos1v) would be overstressed. Minimum W = 320 nm, L = 150 nm.
+  - Ron measured with a DC sweep (drain 10 mV, gate 2.4 V, bulk gnd, W = 320 nm):
+    about 4 / 4.9 / 6.4 / 9.5 / 18 kOhm at source voltage 1.2 / 1.3 / 1.4 / 1.5 / 1.6 V.
+    Ron = 0.01 V / |ID|.
+  - Decision: NMOS only for S1-S8, nmos2v, W = 640 nm, L = 150 nm, bulk gnd
+    (Ron ~ 3.2 kOhm at 1.4 V, ~7 kOhm at 1.56 V). Settling time constant tau = Ron*Cs ~ 1-2 ns,
+    far below the ~97 ns half period, so settling is not an issue.
+  - Reset switches: pmos2v, W ~ 640 nm, L = 150 nm, bulk vdd, driven by rstb
+
+
+======================================================================
+8. TESTS DONE AND RESULTS
+======================================================================
+Expected step with Cs/Cf = 0.5:  delta Vod = 0.5 * (differential input) per clock cycle.
+
+Test                                              Result
+--------------------------------------------------------------------------------------------
+Verilog-A ideal op-amp, 20 mV input               10 mV staircase step (correct)
+Verilog-A ideal op-amp, 40 mV input               20 mV step (after fixing vodmax = 1; with
+                                                  vodmax = 0.28 the tanh compression gave 14.36 mV)
+Verilog-A amp emulating the lab amp               ~18.7 mV at the end steps; explained by finite
+(A0 = 115.7, fp = 3.04 MHz, vodmax = 0.28)        gain, leakage and soft-limit compression
+Real op-amp (opamp_v1, after compensation),       ~9.3 mV step; spikes at phi2 edges and common-mode
+20 mV input                                       dips analysed as start-up reset charge sharing; CM
+                                                  loop instability fixed with the 20 pF
+Real op-amp + MOSFET switches, 40 mV input        good staircase, late step ~18.9 mV (at ~170-190 mV
+                                                  output)
+Latest run (symbol-based testbench, integrator1   steps only ~15-16 mV for a 40 mV input (about 77%
+cell, finished testbench)                         of the expected 20 mV). NOT YET EXPLAINED.
+
+
+
+======================================================================
+10. NEXT STEPS FOR THE REST OF THE MODULATOR
+======================================================================
+1. Comparator: build an ideal Verilog-A version first (output +1 / -1 from the sign of
+   v2_diff, clocked on a phase), then replace it with the StrongARM comparator with NAND/SR latch.
+   Its input offset only matters as much as it is attenuated by the two integrators, so it is
+   not critical.
+3. 1-bit DAC: switches that connect vdacp/vdacn to +Vref or -Vref according to the comparator
+   output (and its complement). Keep the same MOS switch design. This replaces the DC vdac
+   sources used in the integrator tests.
+4. Top-level modulator schematic: two integrator symbols, comparator, DAC, clock generator.
+   Chain integrator1 output -> integrator2 input; both integrators receive the DAC feedback;
+   comparator reads integrator2.
+5. Close the loop. Simulate a sine input (e.g. 5 kHz, 250 mV differential, coherent with the
+   run length) for at least 2^16 cycles (maybe long in Spectre; start with fewer cycles and an
+   ideal comparator), export the bitstream.
+6. Post-process in Python: sinc^3 filter, decimate by 64, FFT, compute SNDR. Compare with the
+   Python behavioral model (dsm_model.py) and the 60 dB target. Check that the integrator
+   outputs stay within the amp's range.
+7. If needed after that: bottom-plate early-opening clock, transmission gates for lower Ron
+   variation, tweaks to Vref/input scaling, power/area numbers for the report.
+
+
