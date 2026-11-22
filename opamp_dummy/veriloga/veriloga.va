@@ -1,0 +1,29 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module opamp_dummy(inn, inp, outp, outn, vdd, gnd, Ibias);
+    input inn, inp;
+    output outp, outn;
+    inout vdd, gnd, Ibias;
+    electrical inn, inp, outp, outn, vdd, gnd, Ibias;
+
+    parameter real A0     = 115.7;     // DC differential gain [V/V]
+    parameter real fp     = 3.04e6;    // dominant pole [Hz]
+    parameter real vcm    = 0.9;       // output common-mode level [V]
+    parameter real vodmax = 0.28;      // max differential output (peak) [V]
+    parameter real idd    = 179.7e-6;  // mimic supply current [A]
+
+    real vin, vod_lin, vod;
+
+    analog begin
+        vin     = V(inp, inn);
+        vod_lin = laplace_nd(vin, {A0}, {1.0, 1.0/(2.0*`M_PI*fp)});
+        vod     = vodmax * tanh(vod_lin / vodmax);
+
+        V(outp, gnd) <+ vcm + 0.5 * vod;
+        V(outn, gnd) <+ vcm - 0.5 * vod;
+
+        I(vdd, gnd)   <+ idd;
+        I(Ibias, gnd) <+ V(Ibias, gnd) / 1e3;
+    end
+endmodule

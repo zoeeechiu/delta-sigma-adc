@@ -1,0 +1,21 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module switch(a, b, ctl);
+    inout a, b;
+    input ctl;
+    electrical a, b, ctl;
+    electrical gnd;
+    ground gnd;
+
+    parameter real ron  = 100;    // on resistance [ohm]
+    parameter real roff = 1e12;   // off resistance [ohm]
+    parameter real vth  = 0.9;    // control threshold [V]
+
+    real g;
+
+    analog begin
+        g = (V(ctl, gnd) > vth) ? 1.0/ron : 1.0/roff;
+        I(a, b) <+ V(a, b) * transition(g, 0, 1n);
+    end
+endmodule
