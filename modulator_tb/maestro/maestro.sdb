@@ -43,6 +43,9 @@
 					<var>vdd
 						<value>2.4</value>
 					</var>
+					<var>vcmi
+						<value>1.4</value>
+					</var>
 				</vars>
 				<origoptions></origoptions>
 				<outputs>

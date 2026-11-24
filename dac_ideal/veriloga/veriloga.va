@@ -1,7 +1,7 @@
 `include "constants.vams"
 `include "disciplines.vams"
 
-module dac1bit(din, vcmi, vdacp, vdacn, vdd, gnd);
+module dac_ideal(din, vcmi, vdacp, vdacn, vdd, gnd);
   inout vdd, gnd;
   input din, vcmi;
   output vdacp, vdacn;

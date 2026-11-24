@@ -19,6 +19,8 @@
 - integrator1     : SC integrator, Cs = 250 fF, Cf = 500 fF  (schematic + symbol)
 - integrator2     : copy of integrator1 with Cs = 125 fF, Cf = 250 fF  (schematic + symbol)
 - modulator_testbench : testbench (sources, clocks, integrator instance)
+- dac_ideal       : Verilog-A 1-bit DAC (renamed from dac1bit)
+- dac             : transistor 1-bit DAC (see 7), tested in dac_tb
 
 ======================================================================
 3. OP-AMP (inside integrator)
@@ -80,6 +82,17 @@ was verified.
     far below the ~97 ns half period, so settling is not an issue.
   - Reset switches: pmos2v, W ~ 640 nm, L = 150 nm, bulk vdd, driven by rstb
 
+======================================================================
+7. DAC
+======================================================================
+Cell: dac. Two CMOS inverters powered from vref+ / vref- (instead of vdd / gnd):
+    vin+ (= b)     -> PMOS M1 (vref+ to vout-) + NMOS M0 (vout- to vref-)
+    vin- (= b_bar) -> PMOS M3 (vref+ to vout+) + NMOS M2 (vout+ to vref-)
+  pmos2v / nmos2v, W = 640 nm, L = 150 nm. NMOS bulk gnd, PMOS bulk vdd.
+  b = 1 -> vout+ - vout- = +0.32 V;  b = 0 -> -0.32 V.
+  vref+ = vcmi + 0.16 V, vref- = vcmi - 0.16 V, so both outputs stay centered on vcmi.
+  The PMOS passes the high reference and the NMOS the low one, which gives both the most gate
+  overdrive (no level shifting needed).
 
 ======================================================================
 8. TESTS DONE AND RESULTS
@@ -100,22 +113,16 @@ Real op-amp + MOSFET switches, 40 mV input        good staircase, late step ~18.
                                                   output)
 Latest run (symbol-based testbench, integrator1   steps only ~15-16 mV for a 40 mV input (about 77%
 cell, finished testbench)                         of the expected 20 mV). NOT YET EXPLAINED.
+dac_tb (transistor DAC)                           differential output +-0.32 V, correct polarity;
+                                                  small kick at phi2 rising edge, settles in a few ns
+modulator_tb (transistor DAC in the loop)         DAC output toggles between +-0.32 V; occasional
+                                                  spikes to ~+-0.85 V near clock edges that settle
 
 
 
 ======================================================================
 10. NEXT STEPS FOR THE REST OF THE MODULATOR
 ======================================================================
-1. Comparator: build an ideal Verilog-A version first (output +1 / -1 from the sign of
-   v2_diff, clocked on a phase), then replace it with the StrongARM comparator with NAND/SR latch.
-   Its input offset only matters as much as it is attenuated by the two integrators, so it is
-   not critical.
-3. 1-bit DAC: switches that connect vdacp/vdacn to +Vref or -Vref according to the comparator
-   output (and its complement). Keep the same MOS switch design. This replaces the DC vdac
-   sources used in the integrator tests.
-4. Top-level modulator schematic: two integrator symbols, comparator, DAC, clock generator.
-   Chain integrator1 output -> integrator2 input; both integrators receive the DAC feedback;
-   comparator reads integrator2.
 5. Close the loop. Simulate a sine input (e.g. 5 kHz, 250 mV differential, coherent with the
    run length) for at least 2^16 cycles (maybe long in Spectre; start with fewer cycles and an
    ideal comparator), export the bitstream.
@@ -124,5 +131,3 @@ cell, finished testbench)                         of the expected 20 mV). NOT YE
    outputs stay within the amp's range.
 7. If needed after that: bottom-plate early-opening clock, transmission gates for lower Ron
    variation, tweaks to Vref/input scaling, power/area numbers for the report.
-
-
