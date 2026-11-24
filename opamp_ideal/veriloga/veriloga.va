@@ -1,7 +1,7 @@
 `include "constants.vams"
 `include "disciplines.vams"
 
-module opamp_dummy(inn, inp, outp, outn, vdd, gnd, Ibias);
+module opamp_ideal(inn, inp, outp, outn, vdd, gnd, Ibias);
     input inn, inp;
     output outp, outn;
     inout vdd, gnd, Ibias;

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<statedb ICVersion="IC23.1-64b.ISR7.27" modifiedTime="11/23/2026 19:00:52" version="5">active
+<statedb ICVersion="IC23.1-64b.ISR7.27" modifiedTime="11/24/2026 02:01:56" version="5">active
 	<Test Name="ECE4530_2026_MP2_test_bench_1">
 		<component Name="adeInfo" Type="skillTable">adeinfo
 			<field Name="descriptiontext" Type="string">"None"</field>
@@ -235,7 +235,7 @@
 						<field Name="sweep" Type="string">""</field>
 						<field Name="hysteresis" Type="list">nil</field>
 						<field Name="saveOppoint" Type="symbol">t</field>
-						<field Name="enable" Type="list">(nil)</field>
+						<field Name="enable" Type="list">(t)</field>
 					</partition>
 				</analysis>
 				<analysis Name="ac">

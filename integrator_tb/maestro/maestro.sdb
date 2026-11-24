@@ -12,7 +12,7 @@
 				<tool>ADE</tool>
 				<tooloptions>
 					<option>cell
-						<value>modulator_tb</value>
+						<value>integrator_tb</value>
 					</option>
 					<option>lib
 						<value>adc</value>
@@ -42,6 +42,9 @@
 					</var>
 					<var>vdd
 						<value>2.4</value>
+					</var>
+					<var>vcmi
+						<value>1.4</value>
 					</var>
 				</vars>
 				<origoptions></origoptions>
@@ -89,7 +92,7 @@
 		</checksasserts>
 		<plottingoptions>
 			<plottingoption>waveformtemplate
-				<value>(None)</value>
+				<value></value>
 			</plottingoption>
 			<plottingoption>plottingmode
 				<value>Append</value>
@@ -101,7 +104,7 @@
 				<value>no</value>
 			</plottingoption>
 			<plottingoption>useMaestroPlottingTemplate
-				<value>yes</value>
+				<value>no</value>
 			</plottingoption>
 			<plottingoption>allplottingtemplates
 				<value></value>
@@ -133,5 +136,6 @@
 		<overwritehistoryname>ExplorerRun.0</overwritehistoryname>
 		<defaultreliabilitymode>Reliability</defaultreliabilitymode>
 	</active>
-	<history>History</history>
+	<history>History
+	</history>
 </setupdb>
